@@ -11,6 +11,7 @@ def handle_query(index, metadata, query_text, k = 5):
     formatted_results = []
 
     for chunk, dist in zip(top_chunks, distances):
+        
         formatted_results.append({
             "file": chunk["source"],
             "chunk_id": chunk["chunk_id"],

@@ -6,17 +6,19 @@ from textUtils import prepare_code_chunks
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def create_embeddings(chunks):
-    return model.encode(chunks,convert_to_numpy=True)
+    embeddings = model.encode(chunks,convert_to_numpy=True)
+    embeddings = np.array(embeddings,dtype = np.float32)
+    return embeddings
 
 def build_faiss_index(embeddings):
-    dimension = embeddings.shape[1]
     faiss.normalize_L2(embeddings)
+    dimension = embeddings.shape[1]
     index = faiss.IndexFlatIP(dimension)
     index.add(embeddings)
     return index
 
 def search_faiss(index, query_embedding, k=5):
-    query_embedding = query_embedding.reshape(1,-1)
+    # query_embedding = query_embedding.reshape(1,-1)
     distances, indices = index.search(query_embedding, k)
     return distances, indices
 
@@ -39,6 +41,9 @@ def process_files(uploaded_files):
 def query_index(index, metadata, query_text, k = 5):
     #embed the query
     query_embedding = create_embeddings([query_text])
+
+    #normalize in-place
+    faiss.normalize_L2(query_embedding)
 
     #search Faiss
     distances, indices = search_faiss(index, query_embedding, k)
